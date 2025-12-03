@@ -1,0 +1,208 @@
+# schemas/user/document.py
+from __future__ import annotations
+from datetime import datetime
+from typing import Optional
+from pydantic import ConfigDict
+from schemas.base import ORMBase
+
+
+# =========================================================
+# user.documents
+# =========================================================
+class DocumentCreate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    owner_id: int
+    name: str
+    file_format: str
+    file_size_bytes: int
+    folder_path: Optional[str] = None
+    status: Optional[str] = None          # server default 'processing'
+    chunk_count: Optional[int] = None     # server default 0
+    uploaded_at: Optional[datetime] = None
+
+
+class DocumentUpdate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    name: Optional[str] = None
+    folder_path: Optional[str] = None
+    status: Optional[str] = None
+    chunk_count: Optional[int] = None
+    # updated_at is server-managed; include only if you allow manual override
+    # updated_at: Optional[datetime] = None
+
+
+class DocumentResponse(ORMBase):
+    model_config = ConfigDict(from_attributes=True)
+    knowledge_id: int
+    owner_id: int
+    name: str
+    file_format: str
+    file_size_bytes: int
+    folder_path: Optional[str] = None
+    status: str
+    chunk_count: int
+    uploaded_at: datetime
+    updated_at: datetime
+
+
+# =========================================================
+# user.document_processing_jobs
+# =========================================================
+class DocumentProcessingJobCreate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    knowledge_id: int
+    stage: str
+    status: Optional[str] = None          # server default 'queued'
+    message: Optional[str] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+
+
+class DocumentProcessingJobUpdate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    stage: Optional[str] = None
+    status: Optional[str] = None
+    message: Optional[str] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+
+
+class DocumentProcessingJobResponse(ORMBase):
+    model_config = ConfigDict(from_attributes=True)
+    job_id: int
+    knowledge_id: int
+    stage: str
+    status: str
+    message: Optional[str] = None
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+
+
+# =========================================================
+# user.document_tags
+# =========================================================
+class DocumentTagCreate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    name: str
+
+
+class DocumentTagUpdate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    name: Optional[str] = None
+
+
+class DocumentTagResponse(ORMBase):
+    model_config = ConfigDict(from_attributes=True)
+    tag_id: int
+    name: str
+
+
+# =========================================================
+# user.document_tag_assignments
+# =========================================================
+class DocumentTagAssignmentCreate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    knowledge_id: int
+    tag_id: int
+
+
+class DocumentTagAssignmentUpdate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    # no updatable fields at the moment
+    pass
+
+
+class DocumentTagAssignmentResponse(ORMBase):
+    model_config = ConfigDict(from_attributes=True)
+    assignment_id: int
+    knowledge_id: int
+    tag_id: int
+
+
+# =========================================================
+# user.document_usage
+# =========================================================
+class DocumentUsageCreate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    knowledge_id: int
+    user_id: Optional[int] = None
+    usage_type: str
+    usage_count: Optional[int] = None      # server default 0
+    last_used_at: Optional[datetime] = None
+
+
+class DocumentUsageUpdate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    usage_type: Optional[str] = None
+    usage_count: Optional[int] = None
+    last_used_at: Optional[datetime] = None
+
+
+class DocumentUsageResponse(ORMBase):
+    model_config = ConfigDict(from_attributes=True)
+    usage_id: int
+    knowledge_id: int
+    user_id: Optional[int] = None
+    usage_type: str
+    usage_count: int
+    last_used_at: datetime
+
+
+# =========================================================
+# user.document_pages  (models.user.DocumentPage 대응)
+# =========================================================
+class DocumentPageCreate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    knowledge_id: int
+    page_no: Optional[int] = None         # 1부터, NULL 허용
+    image_url: Optional[str] = None
+    created_at: Optional[datetime] = None  # 보통 서버에서 채움
+
+
+class DocumentPageUpdate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    page_no: Optional[int] = None
+    image_url: Optional[str] = None
+    # created_at은 보통 수정 안 함
+
+
+class DocumentPageResponse(ORMBase):
+    model_config = ConfigDict(from_attributes=True)
+    page_id: int
+    knowledge_id: int
+    page_no: Optional[int] = None
+    image_url: Optional[str] = None
+    created_at: datetime
+
+
+# =========================================================
+# user.document_chunks  (models.user.DocumentChunk 대응)
+# =========================================================
+class DocumentChunkCreate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    knowledge_id: int
+    page_id: Optional[int] = None
+    chunk_index: int
+    chunk_text: str
+    created_at: Optional[datetime] = None
+
+
+class DocumentChunkUpdate(ORMBase):
+    model_config = ConfigDict(from_attributes=False)
+    page_id: Optional[int] = None
+    chunk_index: Optional[int] = None
+    chunk_text: Optional[str] = None
+    # vector_memory를 갱신하는 경우가 특별히 필요하면 여기 추가 가능
+
+
+
+class DocumentChunkResponse(ORMBase):
+    model_config = ConfigDict(from_attributes=True)
+    chunk_id: int
+    knowledge_id: int
+    page_id: Optional[int] = None
+    chunk_index: int
+    chunk_text: str
+    created_at: datetime
+    # 벡터는 보통 외부로 내보내지 않지만, 필요하면 아래처럼 타입 추가 가능
+    # vector_memory: list[float] | None = None
